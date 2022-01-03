@@ -1,4 +1,4 @@
-# Take-Home Assesment / COMMERCE  
+### Take-Home Assesment / COMMERCE  
 
 INSTALLATION
 
@@ -30,25 +30,23 @@ PROJECT DETAILS
 
 Ecommerce order and discount RESTful API sample..etc.
 
-###API Documentation:
-```html
+### API Documentation:
 https://documenter.getpostman.com/view/6184921/UVRHjPJq
-```
 
-###Controller:
+### Controller:
 Receives API requests (Order and Basket actions) and calls the required services...
 ```
 App\Http\Controllers\BasketController.php
 App\Http\Controllers\OrderController.php
 ```
 
-###Service:
+### Service:
 Manage Order and Basket...
 ```
 App\Http\Services\BasketService.php
 App\Http\Services\OrderService.php
 ```
-###Classes:
+### Classes:
 
 Represents basket. Extends from Discount class. Collect items, remove items, check stock etc...
 ```
