@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  #FPM Service
+  ecommerce-fpm:
+    build:
+      context: ./docker/php80
+      dockerfile: Dockerfile
+    container_name: ecommerce-fpm
+    volumes:
+      - .:/var/www
+      - ./docker/php80/www.conf:/etc/php/8.0/fpm/pool.d/www.conf
+    restart: always
+    working_dir: /var/www
+    networks:
+      - app-network
+
+  #NGINX Service
+  ecommerce-nginx:
+    container_name: ecommerce-nginx
+    image: nginx:1.18
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/vhosts/:/etc/nginx/conf.d/
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+    restart: always
+    working_dir: /var/www
+    networks:
+      - app-network
+    ports:
+      - 80:80
+
+  #Postgres Service
+  ecommerce-postgres:
+    image: postgres:13.4
+    container_name: ecommerce-postgres
+    tty: true
+    restart: always
+    networks:
+      - app-network
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres13:/var/lib/postgresql/data
+      - ./database/backup:/database/backup/
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+networks:
+  app-network:
+    driver: bridge
+    name: blackjacknetw
