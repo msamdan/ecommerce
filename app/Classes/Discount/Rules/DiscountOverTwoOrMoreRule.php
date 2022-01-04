@@ -1,18 +1,15 @@
 <?php
 namespace App\Classes\Discount\Rules;
 
+use App\Classes\Discount\Discount;
 use App\Classes\Discount\Stats;
+use SplSubject;
 
-class DiscountOverTwoOrMoreRule implements Rule
+class DiscountOverTwoOrMoreRule extends Discount implements \SplObserver, Rule
 {
     use Stats;
 
-    /**
-     * items data
-     * @var array
-     */
-    public array $items;
-    public float $subtotal;
+    public SplSubject $basket;
 
     /**
      * items that cause discounts
@@ -36,8 +33,7 @@ class DiscountOverTwoOrMoreRule implements Rule
      * Rule spesific conditions
      * @var int
      */
-    public int $categoryCondition = 1;
-
+    public int $categoryCondition = 2;
 
     /**
      * Rule specific discount inf.
@@ -46,21 +42,16 @@ class DiscountOverTwoOrMoreRule implements Rule
     public int $discountRatio = 20;
     public int $condition = 1;
 
+    public string $discountReason = 'DiscountOverTwoOrMoreRule';
     /**
      * Discount amount
      * @var float|int
      */
     public float $discountAmount = 0;
 
-    public function __construct(array $items, float $subtotal)
-    {
-        $this->items = $items;
-        $this->subtotal = $subtotal;
-    }
-
     public function select(): array
     {
-        foreach ($this->items as  $item)
+        foreach ($this->basket->items as  $item)
             if( $item['categoryId'] === $this->categoryCondition ) $this->selectedItems[] = $item;
 
         return $this->selectedItems;
@@ -75,7 +66,7 @@ class DiscountOverTwoOrMoreRule implements Rule
 
     public function scope(): array
     {
-        $this->itemsInScope = $this->items;
+        $this->itemsInScope = $this->basket->items;
 
         return $this->itemsInScope;
     }
@@ -84,21 +75,17 @@ class DiscountOverTwoOrMoreRule implements Rule
     {
         $unitPrices = array_column($this->itemsInScope, 'unitPrice');
         $key = array_search(min($unitPrices), $unitPrices, true);
-        $this->targetItems[] = $this->items[$key];
+        $this->targetItems[] = $this->basket->items[$key];
 
         return $this->targetItems;
     }
 
-    public function discount(): array
+    public function discount(): float
     {
         foreach ($this->targetItems as $item) {
             $this->discountAmount += $item['unitPrice'] * $this->discountRatio / 100;
         }
 
-        return [
-            "discountReason" => 'BUY_2_OR_MORE_GET_20_RATIO',
-            "discountAmount" => $this->discountAmount,
-            "subtotal" => $this->subtotal - $this->discountAmount
-        ];
+        return $this->discountAmount;
     }
 }

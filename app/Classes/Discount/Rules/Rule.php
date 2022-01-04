@@ -32,5 +32,5 @@ interface Rule
      * Apply discounts to targets
      * @return array
      */
-    public function discount(): array;
+    public function discount(): float;
 }

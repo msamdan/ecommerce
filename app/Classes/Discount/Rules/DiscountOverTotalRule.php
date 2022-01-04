@@ -1,38 +1,31 @@
 <?php
 namespace App\Classes\Discount\Rules;
 
+use App\Classes\Discount\Discount;
 use App\Classes\Discount\Stats;
 
-class DiscountOverTotalRule implements Rule
+class DiscountOverTotalRule extends Discount implements \SplObserver, Rule
 {
     use Stats;
 
-    public array $items;
-    public float $subtotal;
+    public \SplSubject $basket;
 
     public array $selectedItems = [];
     public array $itemsInScope = [];
     public array $targetItems = [];
 
-    public int $discountRatio = 10;
     public int $condition = 1000;
+
+    public int $discountRatio = 10;
 
     public float $discountAmount = 0;
 
-    public function __construct(array $items, float $subtotal)
-    {
-        $this->items = $items;
-        $this->subtotal = $subtotal;
-    }
+    public string $discountReason = 'DiscountOverTotalRule';
 
-    /**
-     * İndirime sebep olan ürünleri seç
-     * @return array
-     */
     public function select(): array
     {
 
-        $this->selectedItems = $this->items;
+        $this->selectedItems = $this->basket->items;
 
         return $this->selectedItems;
     }
@@ -44,7 +37,7 @@ class DiscountOverTotalRule implements Rule
 
     public function scope(): array
     {
-        $this->itemsInScope = $this->items;
+        $this->itemsInScope = $this->basket->items;
 
         return $this->itemsInScope;
     }
@@ -56,16 +49,12 @@ class DiscountOverTotalRule implements Rule
         return $this->targetItems;
     }
 
-    public function discount(): array
+    public function discount(): float
     {
         foreach ($this->targetItems as $item) {
             $this->discountAmount += $item['total'] * $this->discountRatio / 100;
         }
 
-        return [
-            "discountReason" => '10_PERCENT_OVER_1000',
-            "discountAmount" => $this->discountAmount,
-            "subtotal" => $this->subtotal - $this->discountAmount
-        ];
+        return $this->discountAmount;
     }
 }

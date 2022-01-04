@@ -7,7 +7,7 @@ trait Stats
     public function getCategoryTotalAmonth(int $categoryId): float
     {
         $total = 0;
-        foreach ($this->items as $item) {
+        foreach ($this->basket->items as $item) {
             if( $item['categoryId'] === $categoryId) $total += $item['total'];
         }
 
@@ -17,7 +17,7 @@ trait Stats
     public function getCategoryTotalQuantity(int $categoryId): int
     {
         $total = 0;
-        foreach ($this->items as $item) {
+        foreach ($this->basket->items as $item) {
             if( $item['categoryId'] === $categoryId) $total += $item['quantity'];
         }
 
@@ -27,7 +27,7 @@ trait Stats
     public function getCategoryUniqueProductCount(int $categoryId): int
     {
         $total = 0;
-        foreach ($this->items as $item) {
+        foreach ($this->basket->items as $item) {
             if( $item['categoryId'] === $categoryId) $total += 1;
         }
 
@@ -37,7 +37,7 @@ trait Stats
     public function getTotalAmont(): float
     {
         $total = 0;
-        foreach ($this->items as $item) $total += $item['total'];
+        foreach ($this->basket->items as $item) $total += $item['total'];
 
         return $total;
     }
@@ -45,7 +45,7 @@ trait Stats
     public function getTotalQuantity(): int
     {
         $total = 0;
-        foreach ($this->items as $item) $total += $item['quantity'];
+        foreach ($this->basket->items as $item) $total += $item['quantity'];
 
         return $total;
     }
@@ -53,7 +53,7 @@ trait Stats
     public function getTotalUniqueProductCount(): int
     {
         $total = 0;
-        foreach ($this->items as $item) $total += 1;
+        foreach ($this->basket->items as $item) $total += 1;
 
         return $total;
     }

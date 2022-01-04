@@ -1,38 +1,33 @@
 <?php
 namespace App\Classes\Discount\Rules;
 
+use App\Classes\Discount\Discount;
 use App\Classes\Discount\Stats;
 
-class DiscountOverBuyFiveGetOneRule implements Rule
+class DiscountOverBuyFiveGetOneRule extends Discount implements \SplObserver, Rule
 {
     use Stats;
-
-    public array $items;
-    public float $subtotal;
+    public \SplSubject $basket;
 
     public array $selectedItems = [];
     public array $itemsInScope = [];
     public array $targetItems = [];
 
-    public int $discountRatio = 100;
     public int $categoryCondition = 2;
     public int $condition = 6;
 
+    public int $discountRatio = 100;
+
     public float $discountAmount = 0;
 
-    public function __construct(array $items, float $subtotal)
-    {
-        $this->items = $items;
-        $this->subtotal = $subtotal;
-    }
-
+    public string $discountReason = 'DiscountOverBuyFiveGetOneRule';
     /**
      * İndirime sebep olan ürünleri seç
      * @return array
      */
     public function select(): array
     {
-        foreach ($this->items as  $item)
+        foreach ($this->basket->items as  $item)
             if( $item['categoryId'] === $this->categoryCondition ) $this->selectedItems[] = $item;
 
         return $this->selectedItems;
@@ -61,16 +56,12 @@ class DiscountOverBuyFiveGetOneRule implements Rule
         return $this->targetItems;
     }
 
-    public function discount(): array
+    public function discount(): float
     {
         foreach ($this->targetItems as $item) {
             $this->discountAmount += $item['unitPrice'] * $this->discountRatio / 100;
         }
 
-        return [
-            "discountReason" => 'BUY_5_GET_1',
-            "discountAmount" => $this->discountAmount,
-            "subtotal" => $this->subtotal - $this->discountAmount
-        ];
+        return $this->discountAmount;
     }
 }

@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Classes\Basket;
+use App\Classes\Discount\Rules\DiscountOverBuyFiveGetOneRule;
+use App\Classes\Discount\Rules\DiscountOverTotalRule;
+use App\Classes\Discount\Rules\DiscountOverTwoOrMoreRule;
 use App\Helpers\ServiceResponse;
 use App\Models\BasketModel;
 use App\Models\ProductModel;
@@ -29,7 +32,12 @@ class BasketService extends BaseService
         $this->basket = new Basket();
         $this->basket->items = $this->model->items;
         $this->basket->total = $this->model->total;
-        $this->basket->discount = $this->model->discount;
+        $this->basket->discounts = $this->model->discount;
+
+        $this->basket->attach(new DiscountOverBuyFiveGetOneRule());
+        $this->basket->attach(new DiscountOverTwoOrMoreRule());
+        $this->basket->attach(new DiscountOverTotalRule());
+
     }
 
     /**
@@ -70,7 +78,8 @@ class BasketService extends BaseService
      */
     public function get(): ServiceResponse
     {
-         return $this->setResponse(200, 'Success', $this->basket->getState() );
+
+        return $this->setResponse(200, 'Success', $this->basket->getState() );
     }
 
     /**

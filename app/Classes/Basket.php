@@ -2,18 +2,17 @@
 
 namespace App\Classes;
 
-use App\Classes\Discount\Discount;
 use App\Models\ProductModel;
 
-class Basket extends Discount
+class Basket implements \SplSubject
 {
+    private $_observers;
+
     /**
      * Products
      * @var array
      */
     public array $items = [];
-
-    public array $errors = [];
 
     /**
      * Basket total amount
@@ -27,7 +26,30 @@ class Basket extends Discount
      */
     public bool|int $currentItemKey = false;
 
-    public array $discounts = [];
+    public array $discounts = [
+        'discounts' => [],
+        'totalDiscount' => 0,
+        'discountedTotal' => 0
+    ];
+
+    public function __construct()
+    {
+        $this->_observers = new \SplObjectStorage();
+    }
+
+    public function attach(\SplObserver $observer) {
+        $this->_observers->attach($observer);
+    }
+
+    public function detach(\SplObserver $observer) {
+        $this->_observers->detach($observer);
+    }
+
+    public function notify() {
+        foreach ($this->_observers as $observer) {
+            $observer->update($this);
+        }
+    }
 
     /**
      * Check product stock
@@ -39,7 +61,7 @@ class Basket extends Discount
     {
         $currentQuantity = ( $this->currentItemKey === false ? 0 : $this->items[$this->currentItemKey]['quantity'] );
 
-        $orderQuantity =  $increase ? $quantity : $currentQuantity + $quantity;
+        $orderQuantity =  $increase ? $currentQuantity + $quantity : $quantity;
 
         return ( $product->stock > $orderQuantity );
     }
@@ -55,8 +77,8 @@ class Basket extends Discount
 
         unset($this->items[$this->currentItemKey]);
 
-        $this->discounts = $this->getDiscount($this->items);
         $this->total = $this->getTotalAmont();
+        $this->notify();
 
         return [true, 'Item removed'];
     }
@@ -75,8 +97,8 @@ class Basket extends Discount
 
         $this->updateItemQuantity($quantity, false);
         $this->updateItemTotalPrice($product->price);
-        $this->discounts = $this->getDiscount($this->items);
         $this->total = $this->getTotalAmont();
+        $this->notify();
 
         return [true, 'Item added'];
     }
@@ -107,8 +129,8 @@ class Basket extends Discount
         }
 
         $this->updateItemTotalPrice($product->price);
-        $this->discounts = $this->getDiscount($this->items);
         $this->total = $this->getTotalAmont();
+        $this->notify();
 
         return [true, 'Item added'];
     }
@@ -123,6 +145,18 @@ class Basket extends Discount
         $this->items[$this->currentItemKey]['total'] = $price * $this->items[$this->currentItemKey]['quantity'];
 
         return true;
+    }
+
+    /**
+     * Total amonth
+     * @return float
+     */
+    public function getTotalAmont(): float
+    {
+        $total = 0;
+        foreach ($this->items as $item) $total += $item['total'];
+
+        return $total;
     }
 
     /**
